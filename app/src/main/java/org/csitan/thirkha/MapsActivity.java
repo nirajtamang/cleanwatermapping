@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.media.browse.MediaBrowser;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -20,10 +21,14 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
@@ -38,11 +43,47 @@ public class MapsActivity extends FragmentActivity
     CharSequence [] items = {"TAP", "WELL", "RIVER", "POND", "OTHER"};
     boolean[] itemSelected = new boolean[items.length];
 
+    Databss databaseHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+
+        databaseHandler = new Databss(getApplicationContext());
+
+
+        List<Resource> resources = databaseHandler.getAllResources();
+        if(!resources.isEmpty()) {
+            for (int i = 0; i < resources.size(); i++) {
+                Resource rn =  resources.get(i);
+                mMap.addMarker(new MarkerOptions().position(new LatLng(rn.getLat(), rn.getLon())).title(rn.getType()+"Drinkable")
+                                               .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            }
+        }
+        /*
+        Databss  databaseHandler = new Databss(this);
+        List<Resource> resources = databaseHandler.getAllResourcesDetail();
+resource
+        for(Resource rn :resources)
+        {
+
+
+
+        }
+
+        */
+        /*
+        Databss2 database2 = new Databss2(this);
+        List<ResourceDetail> rsrc =  database2.getAllResourcesDetail();
+        for(ResourceDetail rn :rsrc)
+        {
+
+
+         mMap.addMarker(new MarkerOptions().position(new LatLng(rn.getLat(), rn.getLon())).title(rn.getType()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+        }
+        */
 
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -72,6 +113,7 @@ public class MapsActivity extends FragmentActivity
           }
       });
 
+
        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
            @Override
            public boolean onMarkerClick(Marker marker) {
@@ -84,7 +126,13 @@ public class MapsActivity extends FragmentActivity
        });
 
 
+
+
     }
+
+    public static String KEY_LAT = "lat";
+    public static String KEY_LNG = "lng";
+
 
     @Override
     protected Dialog onCreateDialog(int id)
@@ -93,7 +141,7 @@ public class MapsActivity extends FragmentActivity
         switch (id) {
             case 0:
                 return new AlertDialog.Builder(this)
-                        .setIcon(R.drawable.powered_by_google_dark)
+                        .setIcon(R.drawable.abc_btn_rating_star_on_mtrl_alpha)
                         .setTitle("SELECT WATER RESOURCE TYPE:")
                         .setPositiveButton("UPDATE", new
                                 DialogInterface.OnClickListener() {
@@ -101,7 +149,7 @@ public class MapsActivity extends FragmentActivity
                                     public void onClick(DialogInterface dialog, int which) {
                                        // Toast.makeText(getBaseContext(), "clicked", Toast.LENGTH_LONG).show();
 
-                                       mMap.addMarker(new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title(temp));
+                                       mMap.addMarker(new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title(temp).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
 
                                     }
                                 })
@@ -121,7 +169,7 @@ public class MapsActivity extends FragmentActivity
                                         //send to database
 
                                             temp = items[which].toString();
-                                            Toast.makeText(getBaseContext(), temp + latLng, Toast.LENGTH_SHORT).show();
+                                          //  Toast.makeText(getBaseContext(), temp + latLng, Toast.LENGTH_SHORT).show();
 
 
                                         }
@@ -136,10 +184,20 @@ public class MapsActivity extends FragmentActivity
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         // Toast.makeText(getBaseContext(), "clicked", Toast.LENGTH_LONG).show();
-                                        Intent intent = new Intent(getApplicationContext(), Form.class);
+                                        Intent intent = new Intent(getApplicationContext(), LogIn.class);
+                                        startActivity(intent);
+                                       /*
+                                        double lng = mLastLocation.getLongitude();
+                                        double lat = mLastLocation.getLatitude();
+                                        intent.putExtra(KEY_LAT, lat);
+                                        intent.putExtra(KEY_LNG, lng);
                                         startActivity(intent);
 
-                                        Toast.makeText(getBaseContext(), temp + latLng, Toast.LENGTH_SHORT).show();
+                                         */
+                                      //  Toast.makeText(getBaseContext(), temp + latLng, Toast.LENGTH_SHORT).show();
+                                        mMap.addMarker(new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title(temp).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+
+
 
                                     }
                                 })
@@ -147,13 +205,21 @@ public class MapsActivity extends FragmentActivity
                                 DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        Toast.makeText(getBaseContext(),"CANCEL",Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getBaseContext(), "CANCEL", Toast.LENGTH_LONG).show();
                                         showDialog(0);
+                                       // String l1 = latLng.toString();
+                                        double l1 = latLng.latitude;
+                                        double l2 = latLng.longitude;
+                                        Resource tem = new Resource(temp,l1, l2);
 
-                                        Resource tem = new Resource();
-                                        tem.putData(latLng, temp);
+                                        databaseHandler.addContact(tem);
+                                      //  Toast.makeText(getBaseContext(), tem.getType() + " "+ tem.getLat()+" "+ tem.getLon()+ " "+ tem.getId()+ " insrt", Toast.LENGTH_LONG).show();
 
-                                        mMap.addMarker(new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title(temp));
+
+
+
+
+                                        mMap.addMarker(new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title(temp).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
                                     }
                                 })
                         .create();

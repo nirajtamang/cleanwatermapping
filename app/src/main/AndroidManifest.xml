@@ -36,6 +36,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".Form"/>
+        <activity android:name=".LogIn"></activity>
+
     </application>
 
 </manifest>
